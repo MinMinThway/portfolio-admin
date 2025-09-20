@@ -1,5 +1,5 @@
-import { NEWS_API_ROUTES, COMPANY_PROFILE_API_ROUTES, LOCATIONS_API_ROUTES, PRIVACY_POLICY_API_ROUTES } from '../config/apiRoutes';
-import { NewsArticle, CompanyProfile, Shop, PrivacyPolicy } from '../types';
+import { NEWS_API_ROUTES, COMPANY_PROFILE_API_ROUTES, LOCATIONS_API_ROUTES, PRIVACY_POLICY_API_ROUTES, CATEGORY_API_ROUTES, PRODUCT_API_ROUTES, GOLD_QUALITY_API_ROUTES, PRODUCT_TYPE_API_ROUTES } from '../config/apiRoutes';
+import { NewsArticle, CompanyProfile, Shop, PrivacyPolicy, Category, GoldProduct, GoldQuality, ProductType } from '../types';
 
 // A generic fetch wrapper to handle common logic
 async function apiFetch<T>(url: string, options: RequestInit = {}): Promise<T> {
@@ -151,4 +151,66 @@ export const updatePrivacyPolicy = (policy: PrivacyPolicy): Promise<void> => {
         method: 'PUT',
         body: JSON.stringify(policy),
     });
+};
+
+// --- Category API ---
+
+export const getCategories = (): Promise<Category[]> => {
+    return apiFetch<Category[]>(CATEGORY_API_ROUTES.BASE);
+};
+
+export const createCategory = (category: Omit<Category, 'id'>): Promise<Category> => {
+    return apiFetch<Category>(CATEGORY_API_ROUTES.BASE, {
+        method: 'POST',
+        body: JSON.stringify(category),
+    });
+};
+
+export const updateCategory = (category: Category): Promise<void> => {
+    return apiFetch<void>(CATEGORY_API_ROUTES.BY_ID(category.id), {
+        method: 'PUT',
+        body: JSON.stringify(category),
+    });
+};
+
+export const deleteCategory = (id: number): Promise<void> => {
+    return apiFetch<void>(CATEGORY_API_ROUTES.BY_ID(id), {
+        method: 'DELETE',
+    });
+};
+
+// --- Product API ---
+
+export const getProducts = (): Promise<GoldProduct[]> => {
+    return apiFetch<GoldProduct[]>(PRODUCT_API_ROUTES.BASE);
+};
+
+export const createProduct = (product: Omit<GoldProduct, 'id'>): Promise<GoldProduct> => {
+    return apiFetch<GoldProduct>(PRODUCT_API_ROUTES.BASE, {
+        method: 'POST',
+        body: JSON.stringify(product),
+    });
+};
+
+export const updateProduct = (product: GoldProduct): Promise<void> => {
+    return apiFetch<void>(PRODUCT_API_ROUTES.BY_ID(product.id), {
+        method: 'PUT',
+        body: JSON.stringify(product),
+    });
+};
+
+export const deleteProduct = (id: number): Promise<void> => {
+    return apiFetch<void>(PRODUCT_API_ROUTES.BY_ID(id), {
+        method: 'DELETE',
+    });
+};
+
+// --- Gold Quality API ---
+export const getGoldQualities = (): Promise<GoldQuality[]> => {
+    return apiFetch<GoldQuality[]>(GOLD_QUALITY_API_ROUTES.BASE);
+};
+
+// --- Product Type API ---
+export const getProductTypes = (): Promise<ProductType[]> => {
+    return apiFetch<ProductType[]>(PRODUCT_TYPE_API_ROUTES.BASE);
 };

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { NavItem } from './types';
 
@@ -69,12 +68,26 @@ export const TrashIcon: React.FC<{className?: string}> = ({ className }) => (
     </svg>
 );
 
+export const CategoryIcon: React.FC<{className?: string}> = ({ className }) => (
+    <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line>
+    </svg>
+);
+
+export const GoldIcon: React.FC<{className?: string}> = ({ className }) => (
+    <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 2L2 7l10 5 10-5-10-5z"></path><path d="M2 17l10 5 10-5"></path><path d="M2 12l10 5 10-5"></path>
+    </svg>
+);
+
 export const NAV_ITEMS: NavItem[] = [
   { name: 'Dashboard', icon: <HomeIcon className="h-5 w-5" /> },
   { name: 'Users', icon: <UsersIcon className="h-5 w-5" /> },
   { name: 'Company Profile', icon: <BuildingIcon className="h-5 w-5" /> },
   { name: 'Shops', icon: <ShopIcon className="h-5 w-5" /> },
   { name: 'News', icon: <NewsIcon className="h-5 w-5" /> },
+  { name: 'Categories', icon: <CategoryIcon className="h-5 w-5" /> },
+  { name: 'Gold Products', icon: <GoldIcon className="h-5 w-5" /> },
   { name: 'Privacy and Policy', icon: <PolicyIcon className="h-5 w-5" /> },
   { name: 'Analytics', icon: <ChartIcon className="h-5 w-5" /> },
   { name: 'Settings', icon: <SettingsIcon className="h-5 w-5" /> },

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
@@ -9,6 +8,8 @@ import ShopsView from './components/ShopsView';
 import NewsView from './components/NewsView';
 import PrivacyPolicyView from './components/PrivacyPolicyView';
 import LoginView from './components/LoginView';
+import CategoryView from './components/CategoryView';
+import GoldProductsView from './components/GoldProductsView';
 
 const App: React.FC = () => {
   const [activeView, setActiveView] = useState<string>('Dashboard');
@@ -53,6 +54,8 @@ const App: React.FC = () => {
             {activeView === 'Company Profile' && <CompanyProfileView />}
             {activeView === 'Shops' && <ShopsView />}
             {activeView === 'News' && <NewsView />}
+            {activeView === 'Categories' && <CategoryView />}
+            {activeView === 'Gold Products' && <GoldProductsView />}
             {activeView === 'Privacy and Policy' && <PrivacyPolicyView />}
             {/* Other views can be added here based on activeView state */}
           </div>

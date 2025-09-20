@@ -1,4 +1,3 @@
-
 export interface NavItem {
   name: string;
   icon: React.ReactNode;
@@ -87,4 +86,35 @@ export interface PrivacyPolicy {
   description4: string;
   policyName5: string;
   description5: string;
+}
+
+export interface Category {
+  id: number;
+  name: string;
+  description: string;
+  photoUrl: string;
+}
+
+export interface GoldProduct {
+  id: number;
+  productName: string;
+  productDescription: string;
+  goldQuality: string;
+  productType: string;
+  estimatePrice: number;
+  specification: string;
+  photo: string;
+  categoryId: number;
+  user?: string;
+  createdBy?: string;
+}
+
+export interface GoldQuality {
+  id: number;
+  name: string;
+}
+
+export interface ProductType {
+  id: number;
+  name: string;
 }
