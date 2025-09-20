@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 
 interface LoginViewProps {
-    onLogin: (email: string, password: string) => Promise<{ success: boolean; message?: string }>;
+    onLogin: (email: string, password: string) => Promise<boolean>;
 }
 
 const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
-    const [email, setEmail] = useState('admin@example.com');
-    const [password, setPassword] = useState('password');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
 
@@ -14,10 +14,15 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
         e.preventDefault();
         setError('');
         setIsLoading(true);
-        const result = await onLogin(email, password);
-        setIsLoading(false);
-        if (!result.success) {
-            setError(result.message || 'Invalid credentials. Please try again.');
+        try {
+            const success = await onLogin(email, password);
+            if (!success) {
+                setError('Invalid credentials. Please try again.');
+            }
+        } catch (e) {
+            setError('An unexpected error occurred. Please try again later.');
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -50,6 +55,7 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                                     onChange={(e) => setEmail(e.target.value)}
                                     className="w-full px-3 py-2 text-sm bg-gray-100 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                                     placeholder="admin@example.com"
+                                    disabled={isLoading}
                                 />
                             </div>
                         </div>
@@ -69,6 +75,7 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                                     onChange={(e) => setPassword(e.target.value)}
                                     className="w-full px-3 py-2 text-sm bg-gray-100 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                                     placeholder="password"
+                                    disabled={isLoading}
                                 />
                             </div>
                         </div>
@@ -83,14 +90,9 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                             <button
                                 type="submit"
                                 disabled={isLoading}
-                                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-primary hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors duration-200 disabled:bg-indigo-400 disabled:cursor-not-allowed"
+                                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-primary hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                {isLoading ? (
-                                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                    </svg>
-                                ) : 'Sign in'}
+                                {isLoading ? 'Signing in...' : 'Sign in'}
                             </button>
                         </div>
                     </form>

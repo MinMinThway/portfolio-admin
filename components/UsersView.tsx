@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { User, UserStatus } from '../types';
 import { EditIcon, TrashIcon } from '../constants';
 import UserForm from './UserForm';
-import { getUsers, createUser, updateUser, deleteUser } from '../services/api';
+import { getUsers, registerUser, updateUser, deleteUser } from '../services/api';
 
-const getStatusPill = (status: UserStatus) => {
+const getStatusPill = (status: UserStatus | string) => {
   switch (status) {
     case UserStatus.Active:
       return <span className="px-2 py-1 text-xs font-medium text-green-800 bg-green-100 rounded-full">Active</span>;
@@ -13,7 +13,7 @@ const getStatusPill = (status: UserStatus) => {
     case UserStatus.Pending:
       return <span className="px-2 py-1 text-xs font-medium text-yellow-800 bg-yellow-100 rounded-full">Pending</span>;
     default:
-      return null;
+        return <span className="px-2 py-1 text-xs font-medium text-gray-800 bg-gray-100 rounded-full">{status}</span>;
   }
 };
 
@@ -56,10 +56,10 @@ const UsersView: React.FC = () => {
         if (window.confirm('Are you sure you want to delete this user?')) {
             try {
                 await deleteUser(userId);
-                await fetchUsers(); // Refetch users after delete
+                await fetchUsers();
             } catch (err) {
-                 const errorMessage = err instanceof Error ? err.message : 'Failed to delete user.';
-                 setError(errorMessage);
+                const errorMessage = err instanceof Error ? err.message : 'Failed to delete user.';
+                setError(errorMessage);
             }
         }
     };
@@ -67,18 +67,16 @@ const UsersView: React.FC = () => {
     const handleSaveUser = async (userToSave: User & {id: number | null}) => {
         try {
             if(userToSave.id === null){ // New user
-                const { id, ...newUserData } = userToSave;
-                await createUser(newUserData);
+                const { id, avatar, ...newUser } = userToSave;
+                await registerUser(newUser);
             } else { // Existing user
-                await updateUser({ ...userToSave, id: userToSave.id });
+                await updateUser({...userToSave, id: userToSave.id});
             }
             setIsFormOpen(false);
-            await fetchUsers(); // Refetch users after save
+            await fetchUsers();
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : 'Failed to save user.';
-            // TODO: Display this error in the form component itself
-            alert(errorMessage); 
-            // setError(errorMessage);
+            setError(errorMessage);
         }
     };
 
@@ -101,7 +99,7 @@ const UsersView: React.FC = () => {
                     Add User
                 </button>
             </div>
-
+            
             {error && (
                 <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-md mb-6" role="alert">
                     <p className="font-bold">Error</p>
@@ -111,56 +109,56 @@ const UsersView: React.FC = () => {
             
             <div className="bg-card rounded-xl shadow-sm border border-gray-200">
                 <div className="overflow-x-auto">
-                     {isLoading ? (
+                    {isLoading ? (
                         <div className="p-6 text-center text-text-secondary">Loading users...</div>
                     ) : (
-                    <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
-                            <tr>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">Name</th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider hidden md:table-cell">Role</th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider hidden md:table-cell">Phone Number</th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">Status</th>
-                                <th scope="col" className="relative px-6 py-3"><span className="sr-only">Actions</span></th>
-                            </tr>
-                        </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
-                           {users.length > 0 ? users.map(user => (
-                               <tr key={user.id}>
-                                   <td className="px-6 py-4 whitespace-nowrap">
-                                       <div className="flex items-center">
-                                           <div className="flex-shrink-0 h-10 w-10">
-                                               <img className="h-10 w-10 rounded-full object-cover" src={user.avatar} alt={user.name} />
-                                           </div>
-                                           <div className="ml-4">
-                                               <div className="text-sm font-medium text-text-primary">{user.name}</div>
-                                               <div className="text-sm text-text-secondary">{user.email}</div>
-                                           </div>
-                                       </div>
-                                   </td>
-                                   <td className="px-6 py-4 whitespace-nowrap text-sm text-text-secondary hidden md:table-cell">{user.role}</td>
-                                   <td className="px-6 py-4 whitespace-nowrap text-sm text-text-secondary hidden md:table-cell">{user.phoneNumber}</td>
-                                   <td className="px-6 py-4 whitespace-nowrap">{getStatusPill(user.status)}</td>
-                                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                       <div className="flex items-center justify-end space-x-4">
-                                            <button onClick={() => handleEditUser(user)} className="text-primary hover:text-indigo-900" aria-label={`Edit ${user.name}`}>
-                                                <EditIcon className="h-5 w-5" />
-                                            </button>
-                                            <button onClick={() => handleDeleteUser(user.id)} className="text-red-600 hover:text-red-900" aria-label={`Delete ${user.name}`}>
-                                                <TrashIcon className="h-5 w-5" />
-                                            </button>
-                                       </div>
-                                   </td>
-                               </tr>
-                           )) : (
+                        <table className="min-w-full divide-y divide-gray-200">
+                            <thead className="bg-gray-50">
+                                <tr>
+                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">Name</th>
+                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider hidden md:table-cell">Role</th>
+                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider hidden md:table-cell">Phone Number</th>
+                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">Status</th>
+                                    <th scope="col" className="relative px-6 py-3"><span className="sr-only">Actions</span></th>
+                                </tr>
+                            </thead>
+                            <tbody className="bg-white divide-y divide-gray-200">
+                            {users.length > 0 ? users.map(user => (
+                                <tr key={user.id}>
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        <div className="flex items-center">
+                                            <div className="flex-shrink-0 h-10 w-10">
+                                                <img className="h-10 w-10 rounded-full object-cover" src={user.avatar || `https://i.pravatar.cc/150?u=${user.email}`} alt={user.name} />
+                                            </div>
+                                            <div className="ml-4">
+                                                <div className="text-sm font-medium text-text-primary">{user.name}</div>
+                                                <div className="text-sm text-text-secondary">{user.email}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-text-secondary hidden md:table-cell">{user.role}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-text-secondary hidden md:table-cell">{user.phoneNumber}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap">{getStatusPill(user.status)}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                        <div className="flex items-center justify-end space-x-4">
+                                                <button onClick={() => handleEditUser(user)} className="text-primary hover:text-indigo-900" aria-label={`Edit ${user.name}`}>
+                                                    <EditIcon className="h-5 w-5" />
+                                                </button>
+                                                <button onClick={() => handleDeleteUser(user.id)} className="text-red-600 hover:text-red-900" aria-label={`Delete ${user.name}`}>
+                                                    <TrashIcon className="h-5 w-5" />
+                                                </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            )) : (
                                 <tr>
                                     <td colSpan={5} className="px-6 py-4 text-center text-text-secondary">
                                         No users found.
                                     </td>
                                 </tr>
-                           )}
-                        </tbody>
-                    </table>
+                            )}
+                            </tbody>
+                        </table>
                     )}
                 </div>
             </div>

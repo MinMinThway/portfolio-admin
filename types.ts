@@ -20,11 +20,6 @@ export interface User {
   password?: string;
 }
 
-export interface LoginResponse {
-  token: string;
-  // You can include other user details if the API returns them
-}
-
 export interface SaleData {
   month: string;
   revenue: number;

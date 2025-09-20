@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import DashboardView from './components/DashboardView';
@@ -10,30 +10,61 @@ import PrivacyPolicyView from './components/PrivacyPolicyView';
 import LoginView from './components/LoginView';
 import CategoryView from './components/CategoryView';
 import GoldProductsView from './components/GoldProductsView';
-import { loginUser, logoutUser } from './services/api';
+import { AUTH_API_ROUTES } from './config/apiRoutes';
 
 const App: React.FC = () => {
   const [activeView, setActiveView] = useState<string>('Dashboard');
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
 
-  const handleLogin = async (email: string, password: string): Promise<{ success: boolean; message?: string }> => {
+  useEffect(() => {
+    const token = localStorage.getItem('authToken');
+    if (token) {
+        // In a real application, you might want to validate the token here.
+        setIsAuthenticated(true);
+    }
+  }, []);
+
+  const handleLogin = async (email: string, password: string): Promise<boolean> => {
     try {
-      await loginUser({ email, password });
-      setIsAuthenticated(true);
-      return { success: true };
+        const response = await fetch(AUTH_API_ROUTES.LOGIN, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ email, password }),
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            if (data && data.token) {
+                localStorage.setItem('authToken', data.token);
+                setIsAuthenticated(true);
+                return true;
+            }
+        }
+        return false;
     } catch (error) {
-        const message = error instanceof Error ? error.message : 'An unknown error occurred.';
-        return { success: false, message };
+        console.error('Login request failed:', error);
+        return false;
     }
   };
 
   const handleLogout = async () => {
+    const token = localStorage.getItem('authToken');
     try {
-        await logoutUser();
+        await fetch(AUTH_API_ROUTES.LOGOUT, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+        });
     } catch (error) {
-        console.error("Logout failed:", error); // Log error but still log out the user from UI
+        console.error('Logout request failed:', error);
+        // We still want to log the user out on the client-side
     } finally {
+        localStorage.removeItem('authToken');
         setIsAuthenticated(false);
     }
   };
