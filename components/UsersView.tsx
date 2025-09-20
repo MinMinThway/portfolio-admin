@@ -1,18 +1,8 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { User, UserStatus } from '../types';
 import { EditIcon, TrashIcon } from '../constants';
 import UserForm from './UserForm';
-
-const initialUsers: User[] = [
-  { id: 1, name: 'John Doe', email: 'john.doe@example.com', avatar: 'https://picsum.photos/id/1005/50/50', role: 'Admin', status: UserStatus.Active, phoneNumber: '555-0101' },
-  { id: 2, name: 'Jane Smith', email: 'jane.smith@example.com', avatar: 'https://picsum.photos/id/1011/50/50', role: 'Editor', status: UserStatus.Active, phoneNumber: '555-0102' },
-  { id: 3, name: 'Sam Wilson', email: 'sam.wilson@example.com', avatar: 'https://picsum.photos/id/1012/50/50', role: 'Viewer', status: UserStatus.Pending, phoneNumber: '555-0103' },
-  { id: 4, name: 'Alice Brown', email: 'alice.brown@example.com', avatar: 'https://picsum.photos/id/1013/50/50', role: 'Editor', status: UserStatus.Inactive, phoneNumber: '555-0104' },
-  { id: 5, name: 'Chris Green', email: 'chris.green@example.com', avatar: 'https://picsum.photos/id/1025/50/50', role: 'Viewer', status: UserStatus.Active, phoneNumber: '555-0105' },
-  { id: 6, name: 'Patricia Lebsack', email: 'patricia.l@example.com', avatar: 'https://picsum.photos/id/1027/50/50', role: 'Viewer', status: UserStatus.Active, phoneNumber: '555-0106' },
-  { id: 7, name: 'Chelsey Dietrich', email: 'chelsey.d@example.com', avatar: 'https://picsum.photos/id/103/50/50', role: 'Admin', status: UserStatus.Active, phoneNumber: '555-0107' },
-];
+import { getUsers, createUser, updateUser, deleteUser } from '../services/api';
 
 const getStatusPill = (status: UserStatus) => {
   switch (status) {
@@ -28,9 +18,29 @@ const getStatusPill = (status: UserStatus) => {
 };
 
 const UsersView: React.FC = () => {
-    const [users, setUsers] = useState<User[]>(initialUsers);
+    const [users, setUsers] = useState<User[]>([]);
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingUser, setEditingUser] = useState<User | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    const fetchUsers = async () => {
+        try {
+            setIsLoading(true);
+            setError(null);
+            const fetchedUsers = await getUsers();
+            setUsers(fetchedUsers || []);
+        } catch (err) {
+            const errorMessage = err instanceof Error ? err.message : 'Failed to fetch users.';
+            setError(errorMessage);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchUsers();
+    }, []);
 
     const handleAddUser = () => {
         setEditingUser(null);
@@ -42,18 +52,34 @@ const UsersView: React.FC = () => {
         setIsFormOpen(true);
     };
 
-    const handleDeleteUser = (userId: number) => {
-        setUsers(users.filter(user => user.id !== userId));
+    const handleDeleteUser = async (userId: number) => {
+        if (window.confirm('Are you sure you want to delete this user?')) {
+            try {
+                await deleteUser(userId);
+                await fetchUsers(); // Refetch users after delete
+            } catch (err) {
+                 const errorMessage = err instanceof Error ? err.message : 'Failed to delete user.';
+                 setError(errorMessage);
+            }
+        }
     };
 
-    const handleSaveUser = (userToSave: User & {id: number | null}) => {
-        if(userToSave.id === null){ // New user
-            const newId = Math.max(...users.map(u => u.id), 0) + 1;
-            setUsers([...users, {...userToSave, id: newId}]);
-        } else { // Existing user
-            setUsers(users.map(user => user.id === userToSave.id ? {...userToSave, id: user.id} : user));
+    const handleSaveUser = async (userToSave: User & {id: number | null}) => {
+        try {
+            if(userToSave.id === null){ // New user
+                const { id, ...newUserData } = userToSave;
+                await createUser(newUserData);
+            } else { // Existing user
+                await updateUser({ ...userToSave, id: userToSave.id });
+            }
+            setIsFormOpen(false);
+            await fetchUsers(); // Refetch users after save
+        } catch (err) {
+            const errorMessage = err instanceof Error ? err.message : 'Failed to save user.';
+            // TODO: Display this error in the form component itself
+            alert(errorMessage); 
+            // setError(errorMessage);
         }
-        setIsFormOpen(false);
     };
 
     const handleCancel = () => {
@@ -75,9 +101,19 @@ const UsersView: React.FC = () => {
                     Add User
                 </button>
             </div>
+
+            {error && (
+                <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-md mb-6" role="alert">
+                    <p className="font-bold">Error</p>
+                    <p>{error}</p>
+                </div>
+            )}
             
             <div className="bg-card rounded-xl shadow-sm border border-gray-200">
                 <div className="overflow-x-auto">
+                     {isLoading ? (
+                        <div className="p-6 text-center text-text-secondary">Loading users...</div>
+                    ) : (
                     <table className="min-w-full divide-y divide-gray-200">
                         <thead className="bg-gray-50">
                             <tr>
@@ -89,7 +125,7 @@ const UsersView: React.FC = () => {
                             </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
-                           {users.map(user => (
+                           {users.length > 0 ? users.map(user => (
                                <tr key={user.id}>
                                    <td className="px-6 py-4 whitespace-nowrap">
                                        <div className="flex items-center">
@@ -116,9 +152,16 @@ const UsersView: React.FC = () => {
                                        </div>
                                    </td>
                                </tr>
-                           ))}
+                           )) : (
+                                <tr>
+                                    <td colSpan={5} className="px-6 py-4 text-center text-text-secondary">
+                                        No users found.
+                                    </td>
+                                </tr>
+                           )}
                         </tbody>
                     </table>
+                    )}
                 </div>
             </div>
 

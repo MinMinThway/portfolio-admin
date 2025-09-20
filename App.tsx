@@ -10,25 +10,32 @@ import PrivacyPolicyView from './components/PrivacyPolicyView';
 import LoginView from './components/LoginView';
 import CategoryView from './components/CategoryView';
 import GoldProductsView from './components/GoldProductsView';
+import { loginUser, logoutUser } from './services/api';
 
 const App: React.FC = () => {
   const [activeView, setActiveView] = useState<string>('Dashboard');
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
 
-  const handleLogin = (email: string, password: string): boolean => {
-    // In a real application, this would involve an API call.
-    // For this demo, we use hardcoded credentials.
-    if (email === 'admin@example.com' && password === 'password') {
+  const handleLogin = async (email: string, password: string): Promise<{ success: boolean; message?: string }> => {
+    try {
+      await loginUser({ email, password });
       setIsAuthenticated(true);
-      return true;
+      return { success: true };
+    } catch (error) {
+        const message = error instanceof Error ? error.message : 'An unknown error occurred.';
+        return { success: false, message };
     }
-    return false;
   };
 
-  const handleLogout = () => {
-    setIsAuthenticated(false);
-    // Potentially clear any user session data here
+  const handleLogout = async () => {
+    try {
+        await logoutUser();
+    } catch (error) {
+        console.error("Logout failed:", error); // Log error but still log out the user from UI
+    } finally {
+        setIsAuthenticated(false);
+    }
   };
 
   if (!isAuthenticated) {

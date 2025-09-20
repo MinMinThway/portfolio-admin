@@ -1,5 +1,16 @@
 const API_BASE_URL = 'http://localhost:5026/api';
 
+export const AUTH_API_ROUTES = {
+    LOGIN: `${API_BASE_URL}/auth/login`,
+    REGISTER: `${API_BASE_URL}/auth/register`,
+    LOGOUT: `${API_BASE_URL}/auth/logout`,
+};
+
+export const USERS_API_ROUTES = {
+    BASE: `${API_BASE_URL}/users`,
+    BY_ID: (id: number | string) => `${API_BASE_URL}/users/${id}`,
+};
+
 export const NEWS_API_ROUTES = {
     BASE: `${API_BASE_URL}/news`,
     BY_ID: (id: number | string) => `${API_BASE_URL}/news/${id}`,
